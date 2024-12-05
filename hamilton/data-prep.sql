@@ -15,12 +15,15 @@ CREATE MACRO permute_quakes(counter, year) AS hdr2(counter, varId:=year);
 -- We create the quake table:
 -- - 1 row per trial
 -- - events nested into a list with the following fields:
--- - event_id: the event id
+--   - event_id: the event id
 --   - metadata: a json object with the magnitude
 --   - economic_loss: the economic loss
 --   - insured_loss: the insured loss
 --   - pa_loss: the public assistance loss
 -- 
+-- We complete the table with the missing trials using the `UNION` operator.
+-- We generate 10_000 trials using `generate_series(1, 10000` and we remove the trials that are already in the table.
+-- The missing trials have an empty list of events.
 DROP table if exists table_quakes;
 CREATE TABLE table_quakes AS
 (
@@ -95,7 +98,7 @@ SELECT trial, year, peril, event_summary FROM shuffle_table_quakes_for_year(10)
 COPY table_quakes_10Y TO 'table_quakes_10Y.csv';
 
 --
--- We load the table.
--- We ned to tell DuckDB how to reconstruct the `event_summary` field.
+-- We (re)load the table.
+-- We need to tell DuckDB how to reconstruct the `event_summary` field.
 --
 SELECT * FROM read_csv('table_quakes_10Y.csv', columns = { 'trial': 'BIGINT', 'year': 'BIGINT', 'peril': 'STRING', 'event_summary': 'struct(event_id bigint, metadata json, economic_loss double, insured_loss double, pa_loss double)[]'});
