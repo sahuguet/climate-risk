@@ -56,6 +56,12 @@ FROM (SELECT peril, event_summary from table_quakes ORDER BY permute_quakes(tria
 -- We create the table for the 10 years of the simulation.
 -- Year 1 is the original table;
 -- the other years are shuffled versions of the original table using year = 2..10 as the seed for the random number generator.
+-- 
+-- The schema of the table is:
+-- * trial id
+-- * year (1..10)
+-- * peril, e.g. "earthquake", "flood"
+-- * event_summary,  a list of {event_id bigint, metadata json, economic_loss double, insured_loss double, pa_loss double}
 --
 DROP TABLE IF EXISTS table_quakes_10Y;
 CREATE TABLE table_quakes_10Y AS
