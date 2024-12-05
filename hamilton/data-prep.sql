@@ -86,3 +86,16 @@ SELECT trial, year, peril, event_summary FROM shuffle_table_quakes_for_year(9)
 UNION
 SELECT trial, year, peril, event_summary FROM shuffle_table_quakes_for_year(10)
 ) ORDER BY trial ASC, year ASC;
+
+
+--
+-- We save the table as CSV.
+-- Note that `event_summary` is serialized as a string.
+--
+COPY table_quakes_10Y TO 'table_quakes_10Y.csv';
+
+--
+-- We load the table.
+-- We ned to tell DuckDB how to reconstruct the `event_summary` field.
+--
+SELECT * FROM read_csv('table_quakes_10Y.csv', columns = { 'trial': 'BIGINT', 'year': 'BIGINT', 'peril': 'STRING', 'event_summary': 'struct(event_id bigint, metadata json, economic_loss double, insured_loss double, pa_loss double)[]'});
