@@ -102,3 +102,17 @@ COPY table_quakes_10Y TO 'table_quakes_10Y.csv';
 -- We need to tell DuckDB how to reconstruct the `event_summary` field.
 --
 SELECT * FROM read_csv('table_quakes_10Y.csv', columns = { 'trial': 'BIGINT', 'year': 'BIGINT', 'peril': 'STRING', 'event_summary': 'struct(event_id bigint, metadata json, economic_loss double, insured_loss double, pa_loss double)[]'});
+
+-- 
+-- We unnest `event_summary` to have an easy to process table in Excel or SQL
+-- Schema =
+-- * trial
+-- * year
+-- * peril
+-- * metadata
+-- * economic_loss
+-- * insured_loss
+-- * pa_loss
+--
+SELECT trial, year, peril, event.metadata, event.economic_loss, event.insured_loss, event.pa_loss 
+FROM (SELECT trial, year, peril, unnest(event_summary) AS event FROM table_quakes_10Y WHERE trial = 84)
