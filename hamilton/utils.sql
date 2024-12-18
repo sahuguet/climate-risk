@@ -31,3 +31,24 @@ CREATE OR REPLACE MACRO TRI(p, min_val, max_val, med_val) AS
         ELSE max_val - SQRT((1 - p) * (max_val - min_val) * (max_val - med_val))
       END
     END
+
+-- Metalog SPT
+
+CREATE OR REPLACE MACRO Metalog_SPT_Quantile_3(a1, a2, a3, y) AS
+    CASE
+        WHEN y = 0 THEN -1 * CAST('Infinity' AS DOUBLE)
+        WHEN y = 1 THEN      CAST('Infinity' AS DOUBLE)
+        ELSE a1 + a2 * LN(y/(1-y)) + a3 * (y-0.5) * LN(y/(1-y))
+    END
+
+CREATE OR REPLACE MACRO Metalog_SPT_constants(α, q_α, q_05, q_1_α) AS 
+    {'a1': q_05,                                                               
+    'a2': 0.5 * LN((1-α)/α) ^  (-1) * (q_1_α - q_α),            
+    'a3': ( 1 - 2 * α) * LN((1-α)/α) ^ (-1) * (1 - 2 * (q_05 - q_α) / (q_1_α - q_α)) * (q_1_α - q_α)
+    }
+
+CREATE OR REPLACE MACRO Metalog_SPT_Quantile_3_(α, q_α, q_05, q_1_α, y) AS
+    Metalog_SPT_Quantile_3(Metalog_SPT_constants(α, q_α, q_05, q_1_α)['a1'], Metalog_SPT_constants(α, q_α, q_05, q_1_α)['a2'], Metalog_SPT_constants(α, q_α, q_05, q_1_α)['a3'], y)
+
+-- Testing
+SELECT Metalog_SPT_Quantile_3_(0.1, -11.20/100, -6.44/100, -1.68/100, 0.932333959499374);
