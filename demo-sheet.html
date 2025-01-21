@@ -1,0 +1,84 @@
+<html>
+    <head>
+<script src="https://jspreadsheet.com/v11/jspreadsheet.js"></script>
+<script src="https://jsuites.net/v5/jsuites.js"></script>
+<link rel="stylesheet" href="https://jspreadsheet.com/v11/jspreadsheet.css" type="text/css" />
+<link rel="stylesheet" href="https://jsuites.net/v5/jsuites.css" type="text/css" />
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons" />
+</head>
+    <body>
+<p>This is a demo of the GFOA school budgeting tool.</p>
+
+<br>
+
+<p>This is the overall view</p>
+
+        <div id="spreadsheet1"></div><br><br>
+
+<hr/>
+
+<p>Enter Proposed Costs of Investments</p>
+<div id="spreadsheet2"></div>
+
+<script>
+// Set your JSS license key (The following key only works for one day)
+jspreadsheet.setLicense('MjgxYmY0ODY3OTM2NzAxOTBjMzE4NjY4NjU0YTA3ZWMyZmJiNmEzOTE2Y2EzNWYwYmZhMDUzNWExYjcwYjI0MDNkNTVjODA0MjY1ODM1MTM3ZDIxMTg3YTU2YjkxN2RmMzg0ODA1OGJkYjliNGNmMWFhMTVmMGJmODE3MjU0NzMsZXlKamJHbGxiblJKWkNJNklpSXNJbTVoYldVaU9pSktjM0J5WldGa2MyaGxaWFFpTENKa1lYUmxJam94TnpNM05URTFNVFExTENKa2IyMWhhVzRpT2xzaWFuTndjbVZoWkhOb1pXVjBMbU52YlNJc0ltTnZaR1Z6WVc1a1ltOTRMbWx2SWl3aWFuTm9aV3hzTG01bGRDSXNJbU56WWk1aGNIQWlMQ0ozWldJaUxDSnNiMk5oYkdodmMzUWlYU3dpY0d4aGJpSTZJak0wSWl3aWMyTnZjR1VpT2xzaWRqY2lMQ0oyT0NJc0luWTVJaXdpZGpFd0lpd2lkakV4SWl3aVkyaGhjblJ6SWl3aVptOXliWE1pTENKbWIzSnRkV3hoSWl3aWNHRnljMlZ5SWl3aWNtVnVaR1Z5SWl3aVkyOXRiV1Z1ZEhNaUxDSnBiWEJ2Y25SbGNpSXNJbUpoY2lJc0luWmhiR2xrWVhScGIyNXpJaXdpYzJWaGNtTm9JaXdpY0hKcGJuUWlMQ0p6YUdWbGRITWlMQ0pqYkdsbGJuUWlMQ0p6WlhKMlpYSWlMQ0p6YUdGd1pYTWlYU3dpWkdWdGJ5STZkSEoxWlgwPQ==');
+
+// Stop calculations to make sure all data grid are ready and loaded
+jspreadsheet.calculations(false);
+
+// Create the spreadsheets
+const spreadsheet1 = jspreadsheet(document.getElementById('spreadsheet1'), {
+    worksheets: [{
+        data: [
+            [ 'Projected Reveues', 12, , ],
+            [ 'Projected Expenses', , , ],
+            [ 'Investments', '=SUM(Investments!C:C)', '=SUM(Investments!D:D)', '=SUM(Investments!E:E)'],
+        ],
+        columns: [
+            { type: 'text', title:'Type', width:'300' },
+            { type: 'number', title:'Y1', width:'80' },
+            { type: 'number', title:'Y2', width:'100' },
+            { type: 'number', title:'Y3', width:'100' },
+        ],
+        worksheetName: 'Products',
+        columnSorting: false,
+        allowInsertRow: false,
+        style: {
+            'C:C': 'background-color: #ccffff; font-weight: bold',
+            '3:3': 'background-color: red;',
+        },
+        rows: {
+            2: { readonly: true, style: 1 }
+        },
+
+    }],
+});
+
+
+const CATEGORIES = ['Support for Teachers', 'College Readiness', 'Other'];
+
+jspreadsheet(document.getElementById('spreadsheet2'), {
+    worksheets: [{
+        worksheetName: 'Investments',
+        data: [
+            [ 'Support for Teachers', 'Instructional coaches', 50, 50, 50],
+            [ 'College Readiness', 'Guidance Counselors', 50, 50, 50]
+        ],
+        columns: [
+            { type: 'dropdown', title:'Category', source: CATEGORIES, width:'300' },
+            { type: 'text', title:'Description', width:'300' },
+            { type: 'number', title:'Y1', width:'100' },
+            { type: 'number', title:'Y2', width:'100' },
+            { type: 'number', title:'Y3', width:'100' },
+        ],
+        columnSorting: false,
+    }],
+});
+
+// Release the data grid calculations
+jspreadsheet.calculations(true);
+</script>
+</body>
+</html>
