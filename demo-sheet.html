@@ -20,10 +20,54 @@
 
 <p>Enter Proposed Costs of Investments</p>
 <div id="spreadsheet2"></div>
+<button id="btn1">Load data</button>
 
-<script>
+<p>DuckDB data</p>
+<div id="spreadsheet3"></div>
+<button id="btn3">Load data from parquet</button>
+
+
+<script type="module">
+    import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm";
+  
+    async function instantiate(duckdb) {
+      const CDN_BUNDLES = duckdb.getJsDelivrBundles(),
+      bundle = await duckdb.selectBundle(CDN_BUNDLES), // Select a bundle based on browser checks
+      worker_url = URL.createObjectURL(
+        new Blob([ `importScripts("${bundle.mainWorker}");` ], {
+          type: "text/javascript"
+        })
+      );
+      
+      const worker = new Worker(worker_url),
+      logger = new duckdb.ConsoleLogger("DEBUG"),
+      db = new duckdb.AsyncDuckDB(logger, worker);
+      
+      await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+      URL.revokeObjectURL(worker_url);
+      
+      return db;
+    }
+  
+    const DuckDB = await instantiate(duckdb)
+    const db = await DuckDB.connect();
+    console.log("connected.");
+    await Promise.all([
+        db.query("INSTALL httpfs")
+    ]);
+    await Promise.all([
+        db.query("LOAD httpfs")
+    ]);
+    console.log("extensions installed.")
+
+
+    // const data = await db.query(`SELECT * FROM 'https://raw.githubusercontent.com/sahuguet/climate-risk/refs/heads/main/hamilton/floods_10Y.parquet'`);
+    // const results = data.toArray().map((row) => row.toJSON());
+    // console.log(results);
+
+
 // Set your JSS license key (The following key only works for one day)
-jspreadsheet.setLicense('MjgxYmY0ODY3OTM2NzAxOTBjMzE4NjY4NjU0YTA3ZWMyZmJiNmEzOTE2Y2EzNWYwYmZhMDUzNWExYjcwYjI0MDNkNTVjODA0MjY1ODM1MTM3ZDIxMTg3YTU2YjkxN2RmMzg0ODA1OGJkYjliNGNmMWFhMTVmMGJmODE3MjU0NzMsZXlKamJHbGxiblJKWkNJNklpSXNJbTVoYldVaU9pSktjM0J5WldGa2MyaGxaWFFpTENKa1lYUmxJam94TnpNM05URTFNVFExTENKa2IyMWhhVzRpT2xzaWFuTndjbVZoWkhOb1pXVjBMbU52YlNJc0ltTnZaR1Z6WVc1a1ltOTRMbWx2SWl3aWFuTm9aV3hzTG01bGRDSXNJbU56WWk1aGNIQWlMQ0ozWldJaUxDSnNiMk5oYkdodmMzUWlYU3dpY0d4aGJpSTZJak0wSWl3aWMyTnZjR1VpT2xzaWRqY2lMQ0oyT0NJc0luWTVJaXdpZGpFd0lpd2lkakV4SWl3aVkyaGhjblJ6SWl3aVptOXliWE1pTENKbWIzSnRkV3hoSWl3aWNHRnljMlZ5SWl3aWNtVnVaR1Z5SWl3aVkyOXRiV1Z1ZEhNaUxDSnBiWEJ2Y25SbGNpSXNJbUpoY2lJc0luWmhiR2xrWVhScGIyNXpJaXdpYzJWaGNtTm9JaXdpY0hKcGJuUWlMQ0p6YUdWbGRITWlMQ0pqYkdsbGJuUWlMQ0p6WlhKMlpYSWlMQ0p6YUdGd1pYTWlYU3dpWkdWdGJ5STZkSEoxWlgwPQ==');
+jspreadsheet.setLicense('M2Q4MWY2NGE3OTYwYjg4YmEzZDgxZjY4YTQ4NDVhMDQ1OTZjMzU1YWRhYmEzZjRhYjEzYjQ2ZTQwY2MzZTA2MTczZmQyY2UyYzg0NDljZGQ4NDFhODAxZGM2N2UyNjQ5YTI0NWRkMTM5MjZiYTQwNDYwNGU4Mjk2MGJiOWIxZTEsZXlKamJHbGxiblJKWkNJNklqZ3paVGN5WW1Fek9HTTJaREpoTm1OaU5tUTJORFZoT1RNeU0yRTFPR1JrWVRVNU4yVmlOVFFpTENKdVlXMWxJam9pUVhKdVlYVmtJRk5oYUhWbmRXVjBJaXdpWkdGMFpTSTZNVGMwTURBNU5qQXdNQ3dpWkc5dFlXbHVJanBiSW5KcGMyc3RjbVZ6WlhKMlpTNXBieUlzSW5kbFlpSXNJbXh2WTJGc2FHOXpkQ0pkTENKd2JHRnVJam96TVN3aWMyTnZjR1VpT2xzaWRqY2lMQ0oyT0NJc0luWTVJaXdpZGpFd0lpd2lkakV4SWl3aVptOXliWFZzWVNJc0ltWnZjbTF6SWl3aWNtVnVaR1Z5SWl3aWNHRnljMlZ5SWl3aWFXMXdiM0owWlhJaUxDSnpaV0Z5WTJnaUxDSmpiMjF0Wlc1MGN5SXNJblpoYkdsa1lYUnBiMjV6SWl3aVkyaGhjblJ6SWl3aWNISnBiblFpTENKaVlYSWlMQ0p6YUdWbGRITWlMQ0p6YUdGd1pYTWlMQ0p6WlhKMlpYSWlYWDA9');
 
 // Stop calculations to make sure all data grid are ready and loaded
 jspreadsheet.calculations(false);
@@ -59,13 +103,13 @@ const spreadsheet1 = jspreadsheet(document.getElementById('spreadsheet1'), {
 
 const CATEGORIES = ['Support for Teachers', 'College Readiness', 'Other'];
 
-jspreadsheet(document.getElementById('spreadsheet2'), {
+const sheet2 = jspreadsheet(document.getElementById('spreadsheet2'), {
     worksheets: [{
         worksheetName: 'Investments',
-        data: [
-            [ 'Support for Teachers', 'Instructional coaches', 50, 50, 50],
-            [ 'College Readiness', 'Guidance Counselors', 50, 50, 50]
-        ],
+        // data: [
+        //    [ 'Support for Teachers', 'Instructional coaches', 50, 50, 50],
+        //    [ 'College Readiness', 'Guidance Counselors', 50, 50, 50]
+        // ],
         columns: [
             { type: 'dropdown', title:'Category', source: CATEGORIES, width:'300' },
             { type: 'text', title:'Description', width:'300' },
@@ -77,8 +121,49 @@ jspreadsheet(document.getElementById('spreadsheet2'), {
     }],
 });
 
+const sheet3 = jspreadsheet(document.getElementById('spreadsheet3'), {
+    worksheets: [{
+        worksheetName: 'losses',
+        columns: [
+            { type: 'number', title:'trial', width:'100' },
+            { type: 'number', title:'year', width:'100' },
+            { type: 'text', title:'peril', width:'300' },
+            { type: 'text', title:'metadata', width:'300' },
+            { type: 'number', title:'econmic loss', width:'300' },
+        ],
+        columnSorting: false,
+        pagination: 10,
+    }],
+});
+
 // Release the data grid calculations
 jspreadsheet.calculations(true);
+
+// Define function when I click on btn1
+document.getElementById('btn1').onclick = function() {
+    console.log('loading data');
+    const data = [
+            [ 'Support for Teachers', 'Instructional coaches', 50, 50, 50],
+            [ 'College Readiness', 'Guidance Counselors', 50, 50, '=SUM(Losses!E:E)']
+        ];
+    console.log(sheet2);
+    sheet2[0].setData(data);
+    console.log('data loaded');
+};
+
+document.getElementById('btn3').onclick = async function() {
+    console.log('loading data from parquet');
+    const trial = Math.floor(Math.random() * 10000) + 1;
+    const results = await db.query(`SELECT * FROM 'https://raw.githubusercontent.com/sahuguet/climate-risk/refs/heads/main/hamilton/floods_10Y.parquet' WHERE trial = ${trial} ORDER BY trial, year, peril`);
+    const rows = results.toArray().map((row) => row.toJSON());
+    const data = rows.map((row) => [ Number(row.trial), row.year, row.peril, row.metadata, row.economic_loss ]);
+    console.log(data);
+    sheet3[0].setData(data);
+    console.log("Data loaded");
+};
+
+
+
 </script>
 </body>
 </html>

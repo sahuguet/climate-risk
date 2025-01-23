@@ -1,0 +1,49 @@
+<html>
+
+<body>
+
+    <p>Test DuckDB</p>
+
+    <script type="module">
+        import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm";
+      
+        async function instantiate(duckdb) {
+          const CDN_BUNDLES = duckdb.getJsDelivrBundles(),
+          bundle = await duckdb.selectBundle(CDN_BUNDLES), // Select a bundle based on browser checks
+          worker_url = URL.createObjectURL(
+            new Blob([ `importScripts("${bundle.mainWorker}");` ], {
+              type: "text/javascript"
+            })
+          );
+          
+          const worker = new Worker(worker_url),
+          logger = new duckdb.ConsoleLogger("DEBUG"),
+          db = new duckdb.AsyncDuckDB(logger, worker);
+          
+          await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+          URL.revokeObjectURL(worker_url);
+          
+          return db;
+        }
+      
+        const DuckDB = await instantiate(duckdb)
+        const db = await DuckDB.connect();
+        console.log("connected.");
+        await Promise.all([
+            db.query("INSTALL httpfs")
+        ]);
+        await Promise.all([
+            db.query("LOAD httpfs")
+        ]);
+        console.log("extensions installed.")
+        const data = await db.query(`SELECT * FROM 'https://raw.githubusercontent.com/sahuguet/climate-risk/refs/heads/main/hamilton/floods_10Y.parquet'`);
+        const results = data.toArray().map((row) => row.toJSON());
+        console.log(results);
+      </script>
+
+
+
+</body>
+
+
+</html>
