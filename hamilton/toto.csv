@@ -1,2 +1,0 @@
-Delimiter,Quote,Escape,NewLineDelimiter,SkipRows,HasHeader,Columns,DateFormat,TimestampFormat,UserArguments,Prompt
-",","""","""",\n,0,true,"[{'name': trial, 'type': BIGINT}, {'name': year, 'type': BIGINT}, {'name': peril, 'type': VARCHAR}, {'name': event_summary, 'type': VARCHAR}]",,,sample_size=1000,"FROM read_csv('table_quakes_10Y.csv', auto_detect=false, delim=',', quote='""', escape='""', new_line='\n', skip=0, header=true, columns={'trial': 'BIGINT', 'year': 'BIGINT', 'peril': 'VARCHAR', 'event_summary': 'VARCHAR'}, sample_size=1000);"

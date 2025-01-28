@@ -1,0 +1,15 @@
+surplus-deficit:
+  simulated-surplus:
+      type: triangular 1.2 2.6 7.9
+      scale: 0.01
+      seed: 6000
+  is-used-for-current-services:
+      type: uniform 0 1
+      seed: 6010
+  pct-used-for-current-services:
+      type: uniform 0 1
+      seed: 6040
+earhquake:
+flood:
+wildfire:
+

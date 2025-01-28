@@ -52,3 +52,12 @@ CREATE OR REPLACE MACRO Metalog_SPT_Quantile_3_(α, q_α, q_05, q_1_α, y) AS
 
 -- Testing
 SELECT Metalog_SPT_Quantile_3_(0.1, -11.20/100, -6.44/100, -1.68/100, 0.932333959499374);
+
+
+-- Uniform
+CREATE OR REPLACE MACRO UNIFORM(p, min_val, max_val) AS
+    CASE
+        WHEN p < 0 OR p >1 THEN error('p must be between 0 and 1')
+        WHEN min_val > max_val THEN error('max_val must be greater than min_val')
+        ELSE min_val + p * (max_val - min_val)
+    END;
