@@ -1,0 +1,192 @@
+<html>
+    <head>
+<script src="https://jspreadsheet.com/v11/jspreadsheet.js"></script>
+<script src="https://jsuites.net/v5/jsuites.js"></script>
+<link rel="stylesheet" href="https://jspreadsheet.com/v11/jspreadsheet.css" type="text/css" />
+<link rel="stylesheet" href="https://jsuites.net/v5/jsuites.css" type="text/css" />
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons" />
+<title>General Fund 10-Year Model</title>
+
+<style>
+  .spaced-br {
+    display: block;
+    height: 20px;
+    content: "";
+  }
+</style>
+
+</head>
+    <body>
+<h1 align="center">General Fund 10-Year Model</h1>
+
+<h2>Select Trial</h2>
+<p>This will populate the 10y table with some simulated data from the 10,000 trials we have generated.</p>
+
+<input id="btn-shamrock" alt="I am feeling lucky" type="image" height="25px" src="assets/Shamrock.svg"/>
+<span id="trial-span">42</span>
+<input type="range" min="1" max="10000" value="42" class="slider" id="trial-slider">
+
+
+<h2>Run</h2>
+<p>This will propagate the reserve from year to year, to give you the EOY reserver for each year, over the next 10 years.</p>
+
+<button id="compute">Compute EOY Reserve</button>
+
+
+<h2>10y Simulation table</h2>
+        <div id="spreadsheet1"></div><br><br>
+
+<span class="spaced-br"></span>
+<h2>What are the chances ...</h2>
+
+
+<script type="module">
+
+    var trial_value = 42;
+    const btn_shamrock = document.getElementById('btn-shamrock');
+    const trial_slider = document.getElementById("trial-slider");
+    const trial_span = document.getElementById("trial-span");
+
+    btn_shamrock.addEventListener('click', () => {
+        trial_value = Math.floor(Math.random() * 10000) + 1;
+        trial_slider.value = trial_value;
+        trial_span.innerHTML = trial_value;
+        console.log('Re-run simulation for trial: ' + trial_value);
+        runQuery();
+    }); 
+
+    trial_slider.addEventListener('input', () => {
+        trial_value = trial_slider.value;
+        trial_span.innerHTML = trial_value;
+    });
+
+    trial_slider.addEventListener('change', () => {
+        console.log('Re-run simulation for trial: ' + trial_value);
+        runQuery();
+    });
+
+    document.getElementById('compute').onclick = function() {
+        alert('Not implemented yet.')
+    };
+        
+
+    import * as duckdb from "https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@1.29.0/+esm";
+  
+    async function instantiate(duckdb) {
+      const CDN_BUNDLES = duckdb.getJsDelivrBundles(),
+      bundle = await duckdb.selectBundle(CDN_BUNDLES), // Select a bundle based on browser checks
+      worker_url = URL.createObjectURL(
+        new Blob([ `importScripts("${bundle.mainWorker}");` ], {
+          type: "text/javascript"
+        })
+      );
+      
+      const worker = new Worker(worker_url),
+      logger = new duckdb.ConsoleLogger("DEBUG"),
+      db = new duckdb.AsyncDuckDB(logger, worker);
+      
+      await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+      URL.revokeObjectURL(worker_url);
+      
+      return db;
+    }
+  
+    const DuckDB = await instantiate(duckdb)
+    const db = await DuckDB.connect();
+    console.log("connected.");
+    await Promise.all([
+        db.query("INSTALL httpfs")
+    ]);
+    await Promise.all([
+        db.query("LOAD httpfs")
+    ]);
+    console.log("extensions installed.")
+
+
+    // const data = await db.query(`SELECT * FROM 'https://raw.githubusercontent.com/sahuguet/climate-risk/refs/heads/main/hamilton/floods_10Y.parquet'`);
+    // const results = data.toArray().map((row) => row.toJSON());
+    // console.log(results);
+
+// Set your JSS license key (The following key only works for one day)
+jspreadsheet.setLicense('NThhOTIxNzVmODcwYjEyOWY3OTAzM2Y5MmM2YzM4YjBmMzAyZTU4ZGViNWVmMDRjMjI2ODI5ZDAzYjY3MmNiMDViZmVlNzVlMDYyODA1ODgwYWIyOTlmYmVmMzQ2MTNkNjUyNGU2YjgzMWY2NGIyYzljZTNjNDE2ZTQzZmRjYjIsZXlKamJHbGxiblJKWkNJNklqZ3paVGN5WW1Fek9HTTJaREpoTm1OaU5tUTJORFZoT1RNeU0yRTFPR1JrWVRVNU4yVmlOVFFpTENKdVlXMWxJam9pUVhKdVlYVmtJRk5oYUhWbmRXVjBJaXdpWkdGMFpTSTZNVGMwTURBNU5qQXdNQ3dpWkc5dFlXbHVJanBiSW5KcGMyc3RjbVZ6WlhKMlpTNXBieUlzSW5OaGFIVm5kV1YwTG1kcGRHaDFZaTVwYnlJc0luZGxZaUlzSW14dlkyRnNhRzl6ZENKZExDSndiR0Z1SWpvek1Td2ljMk52Y0dVaU9sc2lkamNpTENKMk9DSXNJblk1SWl3aWRqRXdJaXdpZGpFeElpd2labTl5YlhWc1lTSXNJbVp2Y20xeklpd2ljbVZ1WkdWeUlpd2ljR0Z5YzJWeUlpd2lhVzF3YjNKMFpYSWlMQ0p6WldGeVkyZ2lMQ0pqYjIxdFpXNTBjeUlzSW5aaGJHbGtZWFJwYjI1eklpd2lZMmhoY25Seklpd2ljSEpwYm5RaUxDSmlZWElpTENKemFHVmxkSE1pTENKemFHRndaWE1pTENKelpYSjJaWElpWFgwPQ');
+
+// Stop calculations to make sure all data grid are ready and loaded
+jspreadsheet.calculations(false);
+
+const start_year = 2025;
+const TEN_YEARS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+// Create the spreadsheets
+const spreadsheet1 = jspreadsheet(document.getElementById('spreadsheet1'), {
+    worksheets: [{
+        data: [
+            [ 'Regular surplus', , , ],
+            [ 'Recession losses', , , ],
+            [ 'Property Taxes', , , ],
+            [ 'Motor Vehicle tax', , , ],
+            [ 'Other taxes', , , ],
+            [ 'Charges for services', , , ],
+            [ 'Fines and forfeitures', , , ],
+            [ 'All Other GF Econ Sensitive Revenues', , , ],
+            [ 'All Other Less Sensitive GF Revenues', , , ],
+            [ 'Extreme event losses', , ,],
+            [ 'Earthquakes losses', , ,],
+            [ 'Floods losses', , ,],
+            [ 'Wild fires losses', , ,],
+            [ 'Storm losses', , ,],
+            [ 'Net srurplus', , ,],
+            [ 'Reserves', , ,],
+            [ 'Starting reserve', , ,],
+            [ '+ net surplus', , ,],
+            [ '- special projects', , ,],
+            [ '+ FEMA reimbursements', , ,],
+            [ 'EOY Reserve', , ,],
+            
+        ],
+        columns: [
+            { type: 'text', title:'Category', width:'175', align:'right' },
+            { type: 'number', title:`${start_year}`, width:'100' },
+            { type: 'number', title:`${start_year+1}`, width:'100' },
+            { type: 'number', title:`${start_year+2}`, width:'100' },
+            ...TEN_YEARS.map( i => ({ type: 'number', title:`${start_year+i}`, width:'66' }) )
+        ],
+        worksheetName: '10y',
+        columnSorting: false,
+        allowInsertRow: false,
+        rowHeaders: false,
+        style: {
+        //    'C:C': 'background-color: #ccffff; font-weight: bold',
+        //    '3:3': 'background-color: red;',
+        },
+        rows: {
+            1: { group: 7},
+            9: { group: 4} 
+            // 2: { readonly: true, style: 1 }
+        },
+
+    }],
+});
+
+
+
+// Release the data grid calculations
+jspreadsheet.calculations(true);
+
+function runQuery() {
+    const table = 'http://localhost:8000/hamilton/10y-model.parquet'
+    const query = `SELECT trial, metric, json_group_array(value) AS "10y" from (SELECT * FROM '${table}' WHERE trial=${trial_value} ORDER BY year ASC) GROUP BY trial, metric;`;
+    console.log("query: " + query);
+    db.query(query).then((data) => {
+        const results = data.toArray().map((row) => row.toJSON());
+        console.log(results[0]);
+        spreadsheet1[0].setRowData(0, ['Regular Surplus', ...JSON.parse(results[0]['10y']) ]  );
+    });
+}
+
+runQuery();
+
+
+</script>
+</body>
+</html>
