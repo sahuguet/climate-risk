@@ -97,13 +97,20 @@ CREATE OR REPLACE MACRO simulated_surplus(trial, year) AS 0.01 * TRI(CAST(HDR2(t
 
 -- Function to generate the earthquake losses. (TODO)
 
--- Function to generate the wildfire losses. (TODO)
+-- Function to generate the wildfire losses. (TODO).
+CREATE TABLE trials_wildfire AS (SELECT CAST(trial as SMALLINT) as trial,
+       'surplus' AS metric,
+       to_json([{{#10y}}250000 * simulated_surplus(trial, {{.}}), {{/10y}}]) AS "10y"
+FROM (SELECT UNNEST(generate_series(1,10000)) AS trial))
+;
 
 -- We create the main table.
 CREATE TABLE trials AS (SELECT CAST(trial as SMALLINT) as trial,
        'surplus' AS metric,
        to_json([{{#10y}}simulated_surplus(trial, {{.}}), {{/10y}}]) AS "10y"
 FROM (SELECT UNNEST(generate_series(1,10000)) AS trial))
+
+-- END OF SQL TEMPLATE
 `;
     </script>
 
@@ -221,15 +228,14 @@ FROM (SELECT UNNEST(generate_series(1,10000)) AS trial))
                 allowInsertRow: true,
                 style: {
                     //    'C:C': 'background-color: #ccffff; font-weight: bold',
-                    //    '3:3': 'background-color: red;',
+                    //    '1:1': 'background-color: red; font-size:75%;',
                 },
-                /*
+                
                 rows: {
                     1: { group: 7},
                     9: { group: 4} 
                     // 2: { readonly: true, style: 1 }
                 },
-        */
             }],
         });
 
@@ -239,9 +245,7 @@ FROM (SELECT UNNEST(generate_series(1,10000)) AS trial))
         jspreadsheet.calculations(true);
 
         function runQuery() {
-            const table = 'http://localhost:8000/hamilton/10y-model.parquet'
-            //const query = `SELECT trial, metric, json_group_array(value) AS "10y" from (SELECT * FROM '${table}' WHERE trial=${trial_value} ORDER BY year ASC) GROUP BY trial, metric;`;
-            const query = `SELECT trial, metric, "10y" FROM trials WHERE trial=${trial_value};`;
+            var query = `SELECT trial, metric, "10y" FROM trials WHERE trial=${trial_value};`;
             console.log("query: " + query);
             db.query(query).then((data) => {
                 const results = data.toArray().map((row) => row.toJSON());
@@ -249,6 +253,17 @@ FROM (SELECT UNNEST(generate_series(1,10000)) AS trial))
 
                 // We populate the surplus row
                 spreadsheet1[0].setRowData(0, ['Regular Surplus', ...JSON.parse(results[0]['10y'])]);
+                // We populate the earthquake row (TODO).
+                // We populate the wildfire row (TODO).
+            });
+            var query = `SELECT trial, metric, "10y" FROM trials_wildfire WHERE trial=${trial_value};`;
+            console.log("query: " + query);
+            db.query(query).then((data) => {
+                const results = data.toArray().map((row) => row.toJSON());
+                console.log(results[0]);
+
+                // We populate the surplus row
+                spreadsheet1[0].setRowData(12, ['Wild fires losses', ...JSON.parse(results[0]['10y'])]);
                 // We populate the earthquake row (TODO).
                 // We populate the wildfire row (TODO).
             });
